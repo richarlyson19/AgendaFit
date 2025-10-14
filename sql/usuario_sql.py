@@ -1,3 +1,6 @@
+# IMPORTANTE: O valor padrão 'cliente' deve corresponder a Perfil.CLIENTE.value
+# Fonte única da verdade: util.perfis.Perfil
+# Valores válidos: 'admin' (Perfil.ADMIN.value), 'cliente' (Perfil.CLIENTE.value)
 CRIAR_TABELA = """
 CREATE TABLE IF NOT EXISTS usuario (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,6 +37,8 @@ EXCLUIR = "DELETE FROM usuario WHERE id = ?"
 OBTER_POR_ID = "SELECT * FROM usuario WHERE id = ?"
 
 OBTER_TODOS = "SELECT * FROM usuario ORDER BY nome"
+
+OBTER_QUANTIDADE = "SELECT COUNT(*) as quantidade FROM usuario"
 
 OBTER_POR_EMAIL = "SELECT * FROM usuario WHERE email = ?"
 

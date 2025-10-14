@@ -1,0 +1,152 @@
+{% extends "base_privada.html" %}
+
+{% block titulo %}Alterar Senha{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Cabeçalho -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-key-fill"></i> Alterar Senha</h2>
+                <a href="/perfil/visualizar" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            <!-- Formulário de Alteração de Senha -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form action="/perfil/alterar-senha" method="post" id="formSenha">
+                        <!-- Senha Atual -->
+                        <div class="mb-3">
+                            <label for="senha_atual" class="form-label">
+                                <i class="bi bi-lock"></i> Senha Atual
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="senha_atual" name="senha_atual" required
+                                    placeholder="Digite sua senha atual">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('senha_atual')">
+                                    <i class="bi bi-eye" id="icon_senha_atual"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Senha Nova -->
+                        <div class="mb-3">
+                            <label for="senha_nova" class="form-label">
+                                <i class="bi bi-key"></i> Nova Senha
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="senha_nova" name="senha_nova" required
+                                    minlength="8" placeholder="Digite a nova senha">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('senha_nova')">
+                                    <i class="bi bi-eye" id="icon_senha_nova"></i>
+                                </button>
+                            </div>
+                            <!-- Indicador de força da senha -->
+                            <div class="mt-2">
+                                <small class="text-muted">Força da senha:</small>
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar" id="senha-strength" role="progressbar" style="width: 0%">
+                                    </div>
+                                </div>
+                                <small id="senha-strength-text" class="text-muted"></small>
+                            </div>
+                        </div>
+
+                        <!-- Confirmar Senha -->
+                        <div class="mb-3">
+                            <label for="confirmar_senha" class="form-label">
+                                <i class="bi bi-check-circle"></i> Confirmar Nova Senha
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha"
+                                    required minlength="8" placeholder="Digite novamente a nova senha">
+                                <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePassword('confirmar_senha')">
+                                    <i class="bi bi-eye" id="icon_confirmar_senha"></i>
+                                </button>
+                            </div>
+                            <div id="senha-match" class="form-text"></div>
+                        </div>
+                        <!-- Requisitos da Senha -->
+                        <div class="row">
+                            <div class="col">
+                                <div class="alert alert-info">
+                                    <strong><i class="bi bi-info-circle"></i> Requisitos da senha:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li id="req-length">Mínimo de 8 caracteres</li>
+                                        <li id="req-uppercase">Pelo menos 1 letra maiúscula</li>
+                                        <li id="req-lowercase">Pelo menos 1 letra minúscula</li>
+                                        <li id="req-number">Pelo menos 1 número</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <!-- Avisos de Segurança -->
+                                <div class="alert alert-warning" role="alert">
+                                    <i class="bi bi-shield-exclamation"></i>
+                                    <strong>Dica de Segurança:</strong>
+                                    <ul class="mb-0 mt-2">
+                                        <li>Use uma senha forte e única</li>
+                                        <li>Não compartilhe sua senha com ninguém</li>
+                                        <li>Altere sua senha periodicamente</li>
+                                        <li>Não reutilize senhas antigas</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Botões -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="bi bi-key-fill"></i> Alterar Senha
+                            </button>
+                            <a href="/perfil/visualizar" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Inicializar validador de senha
+    const passwordValidator = new PasswordValidator({
+        passwordFieldId: 'senha_nova',
+        confirmPasswordFieldId: 'confirmar_senha',
+        strengthBarId: 'senha-strength',
+        strengthTextId: 'senha-strength-text',
+        matchMessageId: 'senha-match',
+        requirements: {
+            length: 'req-length',
+            uppercase: 'req-uppercase',
+            lowercase: 'req-lowercase',
+            number: 'req-number'
+        },
+        minLength: 8,
+        showStrength: true,
+        showRequirements: true
+    });
+
+    // Validação do formulário
+    document.getElementById('formSenha').addEventListener('submit', function (e) {
+        if (!passwordValidator.validateForm({
+            requireCurrent: true,
+            currentPasswordFieldId: 'senha_atual'
+        })) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+{% endblock %}

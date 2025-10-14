@@ -73,10 +73,20 @@ def obter_todos() -> list[Usuario]:
                 email=row["email"],
                 senha=row["senha"],
                 perfil=row["perfil"],
-                foto=row["foto"]
+                foto=row["foto"],
+                token_redefinicao=row["token_redefinicao"] if "token_redefinicao" in row.keys() else None,
+                data_token=row["data_token"] if "data_token" in row.keys() else None,
+                data_cadastro=row["data_cadastro"] if "data_cadastro" in row.keys() else None
             )
             for row in rows
         ]
+
+def obter_quantidade() -> int:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(OBTER_QUANTIDADE)
+        row = cursor.fetchone()
+        return row["quantidade"] if row else 0
 
 def obter_por_email(email: str) -> Optional[Usuario]:
     with get_connection() as conn:
@@ -91,8 +101,8 @@ def obter_por_email(email: str) -> Optional[Usuario]:
                 senha=row["senha"],
                 perfil=row["perfil"],
                 foto=row["foto"],
-                token_redefinicao=row.get("token_redefinicao"),
-                data_token=row.get("data_token")
+                token_redefinicao=row["token_redefinicao"] if "token_redefinicao" in row.keys() else None,
+                data_token=row["data_token"] if "data_token" in row.keys() else None
             )
         return None
 

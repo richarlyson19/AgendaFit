@@ -42,6 +42,7 @@ env/
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
 
 # Logs
 logs/
@@ -61,3 +62,14 @@ htmlcov/
 *.tmp
 temp/
 tmp/
+.mypy_cache/
+
+
+# IA Files
+CLAUDE.md
+AGENT.md
+codebase.md
+.claude/
+.mcp/
+.aidigestignore
+

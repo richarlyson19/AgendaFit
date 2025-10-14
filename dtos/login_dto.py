@@ -1,132 +1,75 @@
-from pydantic import BaseModel, Field, field_validator
-import re
+from pydantic import BaseModel, field_validator, model_validator
+from dtos.validators import (
+    validar_email,
+    validar_senha_forte,
+    validar_nome_pessoa,
+    validar_string_obrigatoria,
+)
+
 
 class LoginDTO(BaseModel):
     """DTO para validação de dados de login"""
-    email: str = Field(..., min_length=5, max_length=100)
-    senha: str = Field(..., min_length=1)
 
-    @field_validator('email')
-    @classmethod
-    def validar_email(cls, v):
-        """Valida formato do e-mail"""
-        if not v or not v.strip():
-            raise ValueError('E-mail é obrigatório')
+    email: str
+    senha: str
 
-        # Regex básico para validação de email
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, v.strip()):
-            raise ValueError('E-mail inválido')
+    _validar_email = field_validator("email")(validar_email())
+    _validar_senha = field_validator("senha")(validar_senha_forte())
 
-        return v.strip().lower()
-
-    @field_validator('senha')
-    @classmethod
-    def validar_senha(cls, v):
-        """Valida que senha não está vazia"""
-        if not v or not v.strip():
-            raise ValueError('Senha é obrigatória')
-        return v
 
 class CadastroDTO(BaseModel):
     """DTO para validação de dados de cadastro"""
-    nome: str = Field(..., min_length=3, max_length=100)
-    email: str = Field(..., min_length=5, max_length=100)
-    senha: str = Field(..., min_length=8, max_length=100)
-    confirmar_senha: str = Field(..., min_length=8, max_length=100)
 
-    @field_validator('nome')
-    @classmethod
-    def validar_nome(cls, v):
-        """Valida nome do usuário"""
-        if not v or not v.strip():
-            raise ValueError('Nome é obrigatório')
+    nome: str
+    email: str
+    senha: str
+    confirmar_senha: str
 
-        if len(v.strip()) < 3:
-            raise ValueError('Nome deve ter no mínimo 3 caracteres')
+    _validar_nome = field_validator("nome")(validar_nome_pessoa())
+    _validar_email = field_validator("email")(validar_email())
+    _validar_senha = field_validator("senha")(validar_senha_forte())
+    _validar_confirmar = field_validator("confirmar_senha")(
+        validar_string_obrigatoria(
+            "Confirmação de Senha", tamanho_minimo=8, tamanho_maximo=128
+        )
+    )
 
-        return v.strip()
+    @model_validator(mode="after")
+    def validar_senhas_coincidem(self) -> "CadastroDTO":
+        """Valida se senha e confirmação são iguais"""
+        if self.senha != self.confirmar_senha:
+            raise ValueError("As senhas não coincidem")
+        return self
 
-    @field_validator('email')
-    @classmethod
-    def validar_email(cls, v):
-        """Valida formato do e-mail"""
-        if not v or not v.strip():
-            raise ValueError('E-mail é obrigatório')
-
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, v.strip()):
-            raise ValueError('E-mail inválido')
-
-        return v.strip().lower()
-
-    @field_validator('senha')
-    @classmethod
-    def validar_senha(cls, v):
-        """Valida senha"""
-        if not v or not v.strip():
-            raise ValueError('Senha é obrigatória')
-
-        if len(v) < 8:
-            raise ValueError('Senha deve ter no mínimo 8 caracteres')
-
-        return v
-
-    @field_validator('confirmar_senha')
-    @classmethod
-    def validar_confirmar_senha(cls, v):
-        """Valida confirmação de senha"""
-        if not v or not v.strip():
-            raise ValueError('Confirmação de senha é obrigatória')
-        return v
 
 class RecuperacaoSenhaDTO(BaseModel):
     """DTO para validação de recuperação de senha"""
-    email: str = Field(..., min_length=5, max_length=100)
 
-    @field_validator('email')
-    @classmethod
-    def validar_email(cls, v):
-        """Valida formato do e-mail"""
-        if not v or not v.strip():
-            raise ValueError('E-mail é obrigatório')
+    email: str
 
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if not re.match(email_regex, v.strip()):
-            raise ValueError('E-mail inválido')
+    _validar_email = field_validator("email")(validar_email(tamanho_maximo=100))
 
-        return v.strip().lower()
 
 class RedefinirSenhaDTO(BaseModel):
     """DTO para validação de redefinição de senha"""
-    token: str = Field(..., min_length=1)
-    senha: str = Field(..., min_length=8, max_length=100)
-    confirmar_senha: str = Field(..., min_length=8, max_length=100)
 
-    @field_validator('token')
-    @classmethod
-    def validar_token(cls, v):
-        """Valida token"""
-        if not v or not v.strip():
-            raise ValueError('Token é obrigatório')
-        return v.strip()
+    token: str
+    senha: str
+    confirmar_senha: str
 
-    @field_validator('senha')
-    @classmethod
-    def validar_senha(cls, v):
-        """Valida senha"""
-        if not v or not v.strip():
-            raise ValueError('Senha é obrigatória')
+    _validar_token = field_validator("token")(
+        validar_string_obrigatoria("Token", tamanho_minimo=1)
+    )
+    _validar_senha = field_validator("senha")(validar_senha_forte())
+    _validar_confirmar = field_validator("confirmar_senha")(
+        validar_string_obrigatoria(
+            "Confirmação de senha", tamanho_minimo=8, tamanho_maximo=128
+        )
+    )
 
-        if len(v) < 8:
-            raise ValueError('Senha deve ter no mínimo 8 caracteres')
-
-        return v
-
-    @field_validator('confirmar_senha')
-    @classmethod
-    def validar_confirmar_senha(cls, v):
-        """Valida confirmação de senha"""
-        if not v or not v.strip():
-            raise ValueError('Confirmação de senha é obrigatória')
-        return v
+    @model_validator(mode="after")
+    def validar_senhas_coincidem(self) -> "RedefinirSenhaDTO":
+        """Valida se senha e confirmação são iguais"""
+        if self.senha != self.confirmar_senha:
+            raise ValueError("As senhas não coincidem")
+        return self

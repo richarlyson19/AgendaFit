@@ -1,15 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'base_privada.html' %}
 
-{% block titulo %}Lista de Tarefas - Sistema Web{% endblock %}
-
-{% block nav_items %}
-<li class="nav-item">
-    <a class="nav-link" href="/">Início</a>
-</li>
-<li class="nav-item">
-    <a class="nav-link active" href="/tarefas">Tarefas</a>
-</li>
-{% endblock %}
+{% block titulo %}Lista de Tarefas - {{ APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -26,7 +17,7 @@
             <div class="card-body">
                 <div class="list-group list-group-flush">
                     {% for tarefa in tarefas %}
-                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div class="flex-grow-1">
                             <h5 class="mb-1 {% if tarefa.concluida %}text-decoration-line-through text-muted{% endif %}">
                                 {% if tarefa.concluida %}
@@ -48,17 +39,20 @@
                                 {% endif %}
                             </small>
                         </div>
-                        <div class="btn-group ms-3" role="group">
+                        <div class="d-flex gap-2 ms-3">
                             {% if not tarefa.concluida %}
-                            <form method="POST" action="/tarefas/{{ tarefa.id }}/concluir" class="d-inline">
+                            <form method="POST" action="/tarefas/{{ tarefa.id }}/concluir">
                                 <button type="submit" class="btn btn-sm btn-primary" title="Marcar como concluída">
                                     <i class="bi bi-check-lg"></i> Concluir
                                 </button>
                             </form>
                             {% endif %}
-                            <a href="/tarefas/{{ tarefa.id }}/excluir" class="btn btn-sm btn-danger" title="Excluir tarefa">
+                            <button type="button"
+                                    class="btn btn-sm btn-danger"
+                                    title="Excluir tarefa"
+                                    onclick="excluirTarefa({{ tarefa.id }}, '{{ tarefa.titulo|replace("'", "\\'") }}')">
                                 <i class="bi bi-trash"></i> Excluir
-                            </a>
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
@@ -87,4 +81,30 @@
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/**
+ * Função para excluir uma tarefa
+ */
+function excluirTarefa(tarefaId, tarefaTitulo) {
+    const detalhes = `
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="card-title mb-2">
+                    <i class="bi bi-list-task"></i> Tarefa:
+                </h6>
+                <p class="mb-0"><strong>${tarefaTitulo}</strong></p>
+            </div>
+        </div>
+    `;
+
+    abrirModalConfirmacao({
+        url: `/tarefas/${tarefaId}/excluir`,
+        mensagem: 'Tem certeza que deseja excluir esta tarefa?',
+        detalhes: detalhes
+    });
+}
+</script>
 {% endblock %}

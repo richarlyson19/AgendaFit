@@ -1,41 +1,77 @@
-import json
-from pathlib import Path
 from repo import usuario_repo
 from model.usuario_model import Usuario
 from util.security import criar_hash_senha
 from util.logger_config import logger
+from util.perfis import Perfil
 
 def carregar_usuarios_seed():
-    """Carrega usuários do arquivo JSON seed"""
-    arquivo = Path("data/usuarios_seed.json")
+    """
+    Carrega usuários padrão gerando automaticamente 1 usuário para cada perfil do enum.
 
-    if not arquivo.exists():
-        logger.warning("Arquivo de seed não encontrado")
+    Só insere usuários se não houver nenhum usuário cadastrado no banco.
+
+    Formato gerado:
+    - id: sequencial iniciando em 1
+    - nome: {Perfil} Padrão
+    - email: {perfil}@email.com
+    - senha: {Perfil}@123
+    - perfil: {Perfil}
+    """
+    # Verificar se já existem usuários cadastrados
+    quantidade_usuarios = usuario_repo.obter_quantidade()
+    if quantidade_usuarios > 0:
+        logger.info(f"Já existem {quantidade_usuarios} usuários cadastrados. Seed não será executado.")
         return
 
-    with open(arquivo, 'r', encoding='utf-8') as f:
-        dados = json.load(f)
+    usuarios_criados = 0
+    usuarios_com_erro = 0
 
-    for user_data in dados.get("usuarios", []):
-        # Verificar se já existe
-        if usuario_repo.obter_por_email(user_data["email"]):
-            logger.info(f"Usuário {user_data['email']} já existe")
-            continue
+    logger.info("Nenhum usuário encontrado. Iniciando seed de usuários padrão...")
 
-        # Criar usuário
-        usuario = Usuario(
-            id=0,
-            nome=user_data["nome"],
-            email=user_data["email"],
-            senha=criar_hash_senha(user_data["senha"]),
-            perfil=user_data["perfil"]
-        )
+    # Itera sobre todos os perfis definidos no enum
+    for perfil_enum in Perfil:
+        try:
+            perfil_valor = perfil_enum.value
 
-        usuario_repo.inserir(usuario)
-        logger.info(f"Usuário {user_data['email']} criado")
+            # Gera dados do usuário baseado no perfil
+            nome = f"{perfil_valor} Padrão"
+            email = f"{perfil_valor.lower()}@email.com"
+            senha_plain = f"{perfil_valor}@123"
+
+            # Criar usuário
+            usuario = Usuario(
+                id=0,
+                nome=nome,
+                email=email,
+                senha=criar_hash_senha(senha_plain),
+                perfil=perfil_valor
+            )
+
+            usuario_id = usuario_repo.inserir(usuario)
+            if usuario_id:
+                logger.info(f"✓ Usuário {email} criado com sucesso (ID: {usuario_id})")
+                usuarios_criados += 1
+            else:
+                logger.error(f"✗ Falha ao inserir usuário {email} no banco")
+                usuarios_com_erro += 1
+
+        except Exception as e:
+            logger.error(f"✗ Erro ao processar usuário do perfil {perfil_enum.name}: {e}")
+            usuarios_com_erro += 1
+
+    # Resumo
+    logger.info(f"Resumo do seed de usuários: {usuarios_criados} criados, {usuarios_com_erro} com erro")
 
 def inicializar_dados():
     """Inicializa todos os dados seed"""
+    logger.info("=" * 50)
     logger.info("Iniciando carga de dados seed...")
-    carregar_usuarios_seed()
-    logger.info("Dados seed carregados com sucesso!")
+    logger.info("=" * 50)
+
+    try:
+        carregar_usuarios_seed()
+        logger.info("=" * 50)
+        logger.info("Dados seed carregados!")
+        logger.info("=" * 50)
+    except Exception as e:
+        logger.error(f"Erro crítico ao inicializar dados seed: {e}", exc_info=True)

@@ -1,25 +1,41 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
+from dtos.validators import (
+    validar_texto_minimo_palavras,
+    validar_comprimento,
+    validar_id_positivo,
+)
+
 
 class CriarTarefaDTO(BaseModel):
-    titulo: str = Field(..., min_length=3, max_length=100)
-    descricao: str = Field(default="", max_length=500)
+    """DTO para criação de tarefa"""
 
-    @field_validator('titulo')
-    @classmethod
-    def validar_titulo(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Título é obrigatório')
-        return v.strip()
+    titulo: str
+    descricao: str = ""
+
+    _validar_titulo = field_validator("titulo")(
+        validar_texto_minimo_palavras(
+            min_palavras=2, tamanho_maximo=128, nome_campo="Título"
+        )
+    )
+    _validar_descricao = field_validator("descricao")(
+        validar_comprimento(tamanho_maximo=500)
+    )
+
 
 class AlterarTarefaDTO(BaseModel):
-    id: int = Field(..., gt=0)
-    titulo: str = Field(..., min_length=3, max_length=100)
-    descricao: str = Field(default="", max_length=500)
+    """DTO para alteração de tarefa"""
+
+    id: int
+    titulo: str
+    descricao: str = ""
     concluida: bool = False
 
-    @field_validator('titulo')
-    @classmethod
-    def validar_titulo(cls, v):
-        if not v or not v.strip():
-            raise ValueError('Título é obrigatório')
-        return v.strip()
+    _validar_id = field_validator("id")(validar_id_positivo("ID"))
+    _validar_titulo = field_validator("titulo")(
+        validar_texto_minimo_palavras(
+            min_palavras=2, tamanho_maximo=128, nome_campo="Título"
+        )
+    )
+    _validar_descricao = field_validator("descricao")(
+        validar_comprimento(tamanho_maximo=500)
+    )
